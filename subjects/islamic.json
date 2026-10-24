@@ -1,0 +1,29 @@
+{
+  "id": "islamic",
+  "name": "العلوم الإسلامية",
+  "levels": [
+    {
+      "id": "1",
+      "n": "الأولى متوسط"
+    },
+    {
+      "id": "2",
+      "n": "الثانية متوسط"
+    },
+    {
+      "id": "3",
+      "n": "الثالثة متوسط"
+    },
+    {
+      "id": "4",
+      "n": "الرابعة متوسط"
+    }
+  ],
+  "maxLessons": 12,
+  "assessment": {
+    "url": "https://script.google.com/macros/s/AKfycbyseWmMgqMPvmKtOlwM63jMoaDceeyzHfiFllvKLe-Izc6fM1nhwcR-tKB6z0cRMpjP/exec",
+    "note": "رمز التلميذ ورقمه السري يسلّمهما الأستاذ للتلميذ."
+  },
+  "icon": "🕌",
+  "desc": "القرآن الكريم والحديث، العقيدة، الأخلاق والآداب، السيرة النبوية"
+}

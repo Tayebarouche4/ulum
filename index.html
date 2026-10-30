@@ -635,7 +635,7 @@ async function renderQuran(){
     const esc=x=>x||"";
     $("#qcont").innerHTML=QS.pane==="rules"?((v.rules||[]).map(r=>`<div class="qitem"><em>${esc(r.word)}</em><b>${esc(r.rule)}</b><p>${esc(r.desc)}</p></div>`).join("")||'<p class="lead">لا أحكام مسجلة لهذه الآية.</p>')
      :QS.pane==="vocab"?((v.vocab||[]).map(r=>`<div class="qitem"><b>${esc(r.word)}</b><p>${esc(r.meaning)}</p></div>`).join("")||'<p class="lead">لا مفردات مسجلة لهذه الآية.</p>')
-     :`<div class="qitem"><p>${esc(v.theme)}</p></div>`;
+     :(v.theme?`<div class="qitem"><p>${esc(v.theme)}</p></div>`:'<p class="lead">لم يُسجَّل المعنى بعد.</p>');
   };
   document.querySelectorAll("#qtop button").forEach(b=>b.onclick=()=>{QS.top=+b.dataset.t;draw()});
   document.querySelectorAll("#qrules button").forEach(b=>b.onclick=()=>{QS.off[b.dataset.r]=!QS.off[b.dataset.r];draw()});

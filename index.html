@@ -239,7 +239,10 @@ textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:
 .qbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
 .qbar input[type=search]{flex:1;min-width:160px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:4px 12px;min-height:40px}
 .qdraft{background:var(--warn-soft);color:var(--ink);border:1px solid var(--warn);border-radius:10px;padding:6px 12px;margin:6px 0;font-size:.95rem}
-.qpanel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:12px}
+.qlay{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
+.qpanel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:0 -4px 14px rgba(0,0,0,.08);position:sticky;bottom:0;max-height:46vh;overflow-y:auto;z-index:5}
+@media (min-width:900px){.qlay{grid-template-columns:1fr 360px}.qpanel{bottom:auto;top:12px;max-height:calc(100vh - 24px);box-shadow:none}}
+.qitem h4{margin:0 0 4px;color:var(--gold);font-size:.95rem}
 .qhead{background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:10px 14px}
 .qhead .ar{font:1.35rem/2 "Scheherazade New","Amiri",serif}
 .qtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:10px 0}
@@ -604,7 +607,7 @@ async function renderQuran(){
   if(!QURAN[S.id]){main.innerHTML='<p class="lead">جارٍ التحميل...</p>';await loadQuran();if(tab==="quran")renderQuran();return}
   const all=QURAN[S.id];
   if(!openQuran){
-    main.innerHTML=`<div><h2>القرآن الكريم</h2><p class="lead">اختر سورة أو مقطعًا: تقرأ الآيات مع ألوان أحكام التلاوة ومعاني المفردات والمحاور.</p></div>
+    main.innerHTML=`<div><h2>القرآن الكريم</h2><p class="lead">اختر سورة: مرّر الماوس (أو المس) أي آية فتظهر لك أحكام ورش وشرح المفردات والتفسير.</p></div>
     <div class="grid">${all.map(x=>`<button class="lcard" data-q="${x.id}"><span class="no">📖</span><small>${x.riwaya||""}</small><h3>${x.title}</h3><span>${x.meta||""}</span></button>`).join("")||'<p class="lead">لا توجد سور بعد.</p>'}</div>`;
     main.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{openQuran=b.dataset.q;QS.ay=1;QS.top=0;QS.q="";render()});
     return;
@@ -617,14 +620,14 @@ async function renderQuran(){
   ${topics.length?`<div class="qkey" id="qtop"><button data-t="0">كل الآيات</button>${topics.map(t=>`<button data-t="${t.id}" title="${t.desc||""}">${t.title}</button>`).join("")}</div>`:""}
   <div class="qkey" id="qrules">${QRULES.map(r=>`<button data-r="${r[0]}"><i style="background:var(--${r[2]})"></i>${r[1]}</button>`).join("")}</div>
   <div class="qbar"><input type="search" id="qsearch" placeholder="ابحث في الآيات"><button class="btn ghost" id="qm" aria-label="تصغير الخط">أ−</button><button class="btn ghost" id="qp" aria-label="تكبير الخط">أ+</button></div>
-  <div class="qtext" id="qtext" style="font-size:${QS.fs}px"></div>
-  <div class="qpanel"><div class="qhead"><b id="qbadge"></b> <small id="qtopic"></small><div class="ar" id="qar"></div></div>
-  <div class="qtabs" role="tablist"><button data-p="rules">أحكام التلاوة</button><button data-p="vocab">المفردات</button><button data-p="theme">المعنى والمحور</button></div><div id="qcont"></div></div></div>`;
+  <div class="qlay"><div class="qtext" id="qtext" style="font-size:${QS.fs}px"></div>
+  <aside class="qpanel" id="qpanel" aria-live="polite"></aside></div></div>`;
   $("#qback").onclick=()=>{openQuran=null;render()};
   const draw=()=>{
     const v=d.verses.filter(x=>(!QS.top||x.topic===QS.top)&&(!QS.q||qn(x.text).includes(qn(QS.q))));
     $("#qtext").innerHTML=v.map(x=>`<span class="qv${x.n===QS.ay?" on":""}" data-n="${x.n}">${x.tj} <span class="qn">${x.n}</span></span> `).join("")||'<p class="lead">لا نتيجة.</p>';
-    $("#qtext").querySelectorAll(".qv").forEach(e=>e.onclick=()=>{QS.ay=+e.dataset.n;draw();info()});
+    $("#qtext").querySelectorAll(".qv").forEach(e=>{const pick=()=>{if(QS.ay===+e.dataset.n)return;QS.ay=+e.dataset.n;$("#qtext").querySelectorAll(".qv").forEach(z=>z.classList.toggle("on",z===e));info()};
+      e.onclick=pick; e.onmouseenter=()=>{if(matchMedia("(hover:hover)").matches)pick()}});
     qBind();
     document.querySelectorAll("#qtop button").forEach(b=>b.style.background=(+b.dataset.t===QS.top)?"var(--gold-soft)":"");
     document.querySelectorAll("#qrules button").forEach(b=>b.classList.toggle("off",!!QS.off[b.dataset.r]));
@@ -632,16 +635,15 @@ async function renderQuran(){
   const info=()=>{
     const v=d.verses.find(x=>x.n===QS.ay)||d.verses[0]; if(!v)return;
     const t=topics.find(x=>x.id===v.topic);
-    $("#qbadge").textContent="الآية "+v.n; $("#qtopic").textContent=t?" · "+t.title:""; $("#qar").textContent=v.text;
-    document.querySelectorAll(".qtabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.p===QS.pane));
-    const esc=x=>x||"";
-    $("#qcont").innerHTML=QS.pane==="rules"?((v.rules||[]).map(r=>`<div class="qitem"><em>${esc(r.word)}</em><b>${esc(r.rule)}</b><p>${esc(r.desc)}</p></div>`).join("")||'<p class="lead">لا أحكام مسجلة لهذه الآية.</p>')
-     :QS.pane==="vocab"?((v.vocab||[]).map(r=>`<div class="qitem"><b>${esc(r.word)}</b><p>${esc(r.meaning)}</p></div>`).join("")||'<p class="lead">لا مفردات مسجلة لهذه الآية.</p>')
-     :(v.theme?`<div class="qitem"><p>${esc(v.theme)}</p></div>`:'<p class="lead">لم يُسجَّل المعنى بعد.</p>');
+    const ah=v.ahkam?`<p>${v.ahkam}</p>`:((v.rules||[]).map(r=>`<div class="qitem"><em>${r.word||""}</em><b>${r.rule||""}</b><p>${r.desc||""}</p></div>`).join(""));
+    const wd=v.words?`<p>${v.words.split("|").map(x=>x.trim()).filter(Boolean).join("<br>")}</p>`:((v.vocab||[]).map(r=>`<div class="qitem"><b>${r.word}</b><p>${r.meaning}</p></div>`).join(""));
+    $("#qpanel").innerHTML=`<div class="qhead"><b>الآية ${v.n}</b> <small>${t?" · "+t.title:""}</small><div class="ar">${v.text}</div></div>
+    <div class="qitem"><h4>✨ أحكام ورش والتجويد</h4>${ah||'<p class="lead">لا أحكام مسجلة.</p>'}</div>
+    <div class="qitem"><h4>📖 شرح الغريب والمفردات</h4>${wd||'<p class="lead">لا مفردات مسجلة.</p>'}</div>
+    <div class="qitem"><h4>💡 التفسير والمعنى الإجمالي</h4>${v.theme?`<p>${v.theme}</p>`:'<p class="lead">لم يُسجَّل بعد.</p>'}</div>`;
   };
   document.querySelectorAll("#qtop button").forEach(b=>b.onclick=()=>{QS.top=+b.dataset.t;draw()});
   document.querySelectorAll("#qrules button").forEach(b=>b.onclick=()=>{QS.off[b.dataset.r]=!QS.off[b.dataset.r];draw()});
-  document.querySelectorAll(".qtabs button").forEach(b=>b.onclick=()=>{QS.pane=b.dataset.p;info()});
   $("#qsearch").value=QS.q;$("#qsearch").oninput=e=>{QS.q=e.target.value.trim();draw()};
   $("#qm").onclick=()=>{QS.fs=Math.max(20,QS.fs-2);$("#qtext").style.fontSize=QS.fs+"px"};
   $("#qp").onclick=()=>{QS.fs=Math.min(48,QS.fs+2);$("#qtext").style.fontSize=QS.fs+"px"};

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>فضاء الدروس</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Reem+Kufi:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Reem+Kufi:wght@500;700&display=swap">
 <style>
 /* Layout: sticky masthead + four-tab single page; lessons read like a notebook sheet (header, date line, numbered points). */
 :root{
@@ -208,6 +208,46 @@ textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:
 .gcf.open{background:var(--bg);color:var(--ink);font-size:.95rem}
 .gcf.ok{background:var(--good-soft);border-color:var(--good);color:var(--ink);font-size:.95rem}
 .gcf.no{background:var(--bad-soft);border-color:var(--bad);color:var(--ink);font-size:.95rem}
+
+/* القرآن: subjects/<المادة>/quran/index.json (قائمة أسماء الملفات) + <الاسم>.json لكل سورة أو مقطع */
+.qx{--q1:#2563a8;--q2:#c02350;--q3:#7a45d6;--q4:#0c8a8f;--q5:#0b8a5a;--q6:#b86b00;--q7:#6d3fc4;--q8:#1b8f3a;--q9:#d1560e;--q10:#d02727;--q11:#c2287a}
+:root[data-theme="dark"] .qx,.qxd{--q1:#6bb6f5;--q2:#ff8aa5;--q3:#b99cf6;--q4:#4fd0d6;--q5:#4fd59c;--q6:#f3b04e;--q7:#c7a6fa;--q8:#6fda8a;--q9:#ff9a5c;--q10:#ff8484;--q11:#ff9ccc}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .qx{--q1:#6bb6f5;--q2:#ff8aa5;--q3:#b99cf6;--q4:#4fd0d6;--q5:#4fd59c;--q6:#f3b04e;--q7:#c7a6fa;--q8:#6fda8a;--q9:#ff9a5c;--q10:#ff8484;--q11:#ff9ccc}}
+.qtext{font-family:"Scheherazade New","Amiri",serif;line-height:2.7;text-align:start;background:var(--surface);border:2px solid var(--gold-soft);border-radius:14px;padding:18px 16px}
+.qv{cursor:pointer;border-radius:8px;padding:2px 4px}
+.qv:hover{background:var(--gold-soft)}
+.qv.on{background:var(--gold-soft);box-shadow:0 0 0 2px var(--gold)}
+.qn{display:inline-flex;align-items:center;justify-content:center;min-width:2.1rem;height:2.1rem;margin:0 4px;border:2px solid var(--gold);border-radius:50%;font:700 .8rem var(--f-book);color:var(--ink);user-select:none}
+.qx [class^="tj-"]{font-weight:700;border-bottom:2px solid currentColor}
+.qx .tj-naql{color:var(--q1);border-bottom-style:dashed}
+.qx .tj-taqleel{color:var(--q2);border-bottom-style:dashed}
+.qx .tj-badal{color:var(--q3);border-bottom-style:double}
+.qx .tj-leen{color:var(--q4);border-bottom-style:dotted}
+.qx .tj-tarqeeq-raa{color:var(--q5);border-bottom-style:dotted;font-style:italic}
+.qx .tj-taghleeth-lam{color:var(--q6)}
+.qx .tj-mad{color:var(--q7)}
+.qx .tj-ghunnah{color:var(--q8);border-bottom-style:dotted}
+.qx .tj-ikhfa{color:var(--q9);border-bottom-style:dotted}
+.qx .tj-qalqalah{color:var(--q10)}
+.qx .tj-iqlab{color:var(--q11);border-bottom-style:dotted}
+.qx .tj-izhar{color:var(--q4);border-bottom-style:dotted}
+.qx.off-naql .tj-naql,.qx.off-taqleel .tj-taqleel,.qx.off-badal .tj-badal,.qx.off-leen .tj-leen,.qx.off-tarqeeq .tj-tarqeeq-raa,.qx.off-taghleeth .tj-taghleeth-lam,.qx.off-mad .tj-mad,.qx.off-ghunnah .tj-ghunnah,.qx.off-qalqalah .tj-qalqalah{color:inherit;font-weight:400;font-style:normal;border-bottom:none}
+.qkey{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.qkey button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:0 12px;min-height:34px;cursor:pointer;font-size:.9rem;display:inline-flex;align-items:center;gap:6px}
+.qkey button.off{opacity:.4}
+.qkey i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.qbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.qbar input[type=search]{flex:1;min-width:160px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:4px 12px;min-height:40px}
+.qpanel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:12px}
+.qhead{background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:10px 14px}
+.qhead .ar{font:1.35rem/2 "Scheherazade New","Amiri",serif}
+.qtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:10px 0}
+.qtabs button{flex:1;border:0;border-bottom:3px solid transparent;background:none;cursor:pointer;min-height:40px;color:var(--muted);font-weight:700}
+.qtabs button[aria-selected=true]{color:var(--accent);border-color:var(--accent)}
+.qitem{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:8px 0}
+.qitem b{color:var(--accent)}
+.qitem em{float:left;font-style:normal;background:var(--gold-soft);color:var(--ink);border-radius:6px;padding:0 8px;font-size:.85rem}
+.qitem p{margin:2px 0 0}
 </style>
 </head>
 <body>
@@ -220,6 +260,7 @@ textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:
     <button role="tab" data-tab="lessons">الدروس</button>
     <button role="tab" data-tab="questions">سؤال وجواب</button>
     <button role="tab" data-tab="exams">نماذج الأسئلة</button>
+    <button role="tab" data-tab="quran" id="tabQ" hidden>القرآن</button>
     <button role="tab" data-tab="games">ألعاب</button>
     <button role="tab" data-tab="plans">مذكرات الأستاذ</button>
     <button role="tab" data-tab="assessment" id="tabA">التقويم المستمر</button>
@@ -543,6 +584,67 @@ async function renderGames(){
   bindLv();
   main.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{openGame=b.dataset.g;GS=null;render()});
 }
+
+/* القرآن الكريم */
+const QURAN={}; let openQuran=null, QS={ay:1,top:0,pane:"rules",off:{},fs:30,q:""};
+const QRULES=[["naql","نقل","q1"],["taqleel","تقليل","q2"],["badal","مد البدل","q3"],["tarqeeq","ترقيق الراء","q5"],["taghleeth","تغليظ اللام","q6"],["mad","المد","q7"],["leen","اللين المهموز","q4"],["ghunnah","الغنة والإدغام","q8"],["qalqalah","القلقلة","q10"]];
+const qn=t=>(t||"").replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g,"").replace(/[إأآٱ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه");
+async function loadQuran(){
+  const base=`subjects/${S.id}/quran/`;
+  let list=[];try{const r=await fetch(base+"index.json");if(r.ok)list=await r.json()}catch(e){}
+  QURAN[S.id]=(await Promise.all(list.map(n=>fetch(base+n+".json").then(r=>r.ok?r.json():null).catch(()=>null).then(x=>x?Object.assign(x,{id:n}):null)))).filter(Boolean);
+  const t=$("#tabQ"); if(t) t.hidden=!QURAN[S.id].length;
+}
+function qBind(){
+  const q=$(".qx"); if(!q)return;
+  q.className="qx"+Object.keys(QS.off).filter(k=>QS.off[k]).map(k=>" off-"+k).join("");
+}
+async function renderQuran(){
+  if(!QURAN[S.id]){main.innerHTML='<p class="lead">جارٍ التحميل...</p>';await loadQuran();if(tab==="quran")renderQuran();return}
+  const all=QURAN[S.id];
+  if(!openQuran){
+    main.innerHTML=`<div><h2>القرآن الكريم</h2><p class="lead">اختر سورة أو مقطعًا: تقرأ الآيات مع ألوان أحكام التلاوة ومعاني المفردات والمحاور.</p></div>
+    <div class="grid">${all.map(x=>`<button class="lcard" data-q="${x.id}"><span class="no">📖</span><small>${x.riwaya||""}</small><h3>${x.title}</h3><span>${x.meta||""}</span></button>`).join("")||'<p class="lead">لا توجد سور بعد.</p>'}</div>`;
+    main.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{openQuran=b.dataset.q;QS.ay=1;QS.top=0;QS.q="";render()});
+    return;
+  }
+  const d=all.find(x=>x.id===openQuran); if(!d){openQuran=null;render();return}
+  const topics=d.topics||[];
+  main.innerHTML=`<div class="row"><button class="btn ghost" id="qback">العودة إلى القرآن</button></div>
+  <div class="qx"><h2>${d.title}</h2><p class="lead">${d.riwaya||""} · ${d.meta||""}</p>
+  ${topics.length?`<div class="qkey" id="qtop"><button data-t="0">كل الآيات</button>${topics.map(t=>`<button data-t="${t.id}" title="${t.desc||""}">${t.title}</button>`).join("")}</div>`:""}
+  <div class="qkey" id="qrules">${QRULES.map(r=>`<button data-r="${r[0]}"><i style="background:var(--${r[2]})"></i>${r[1]}</button>`).join("")}</div>
+  <div class="qbar"><input type="search" id="qsearch" placeholder="ابحث في الآيات"><button class="btn ghost" id="qm" aria-label="تصغير الخط">أ−</button><button class="btn ghost" id="qp" aria-label="تكبير الخط">أ+</button></div>
+  <div class="qtext" id="qtext" style="font-size:${QS.fs}px"></div>
+  <div class="qpanel"><div class="qhead"><b id="qbadge"></b> <small id="qtopic"></small><div class="ar" id="qar"></div></div>
+  <div class="qtabs" role="tablist"><button data-p="rules">أحكام التلاوة</button><button data-p="vocab">المفردات</button><button data-p="theme">المعنى والمحور</button></div><div id="qcont"></div></div></div>`;
+  $("#qback").onclick=()=>{openQuran=null;render()};
+  const draw=()=>{
+    const v=d.verses.filter(x=>(!QS.top||x.topic===QS.top)&&(!QS.q||qn(x.text).includes(qn(QS.q))));
+    $("#qtext").innerHTML=v.map(x=>`<span class="qv${x.n===QS.ay?" on":""}" data-n="${x.n}">${x.tj} <span class="qn">${x.n}</span></span> `).join("")||'<p class="lead">لا نتيجة.</p>';
+    $("#qtext").querySelectorAll(".qv").forEach(e=>e.onclick=()=>{QS.ay=+e.dataset.n;draw();info()});
+    qBind();
+    document.querySelectorAll("#qtop button").forEach(b=>b.style.background=(+b.dataset.t===QS.top)?"var(--gold-soft)":"");
+    document.querySelectorAll("#qrules button").forEach(b=>b.classList.toggle("off",!!QS.off[b.dataset.r]));
+  };
+  const info=()=>{
+    const v=d.verses.find(x=>x.n===QS.ay)||d.verses[0]; if(!v)return;
+    const t=topics.find(x=>x.id===v.topic);
+    $("#qbadge").textContent="الآية "+v.n; $("#qtopic").textContent=t?" · "+t.title:""; $("#qar").textContent=v.text;
+    document.querySelectorAll(".qtabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.p===QS.pane));
+    const esc=x=>x||"";
+    $("#qcont").innerHTML=QS.pane==="rules"?((v.rules||[]).map(r=>`<div class="qitem"><em>${esc(r.word)}</em><b>${esc(r.rule)}</b><p>${esc(r.desc)}</p></div>`).join("")||'<p class="lead">لا أحكام مسجلة لهذه الآية.</p>')
+     :QS.pane==="vocab"?((v.vocab||[]).map(r=>`<div class="qitem"><b>${esc(r.word)}</b><p>${esc(r.meaning)}</p></div>`).join("")||'<p class="lead">لا مفردات مسجلة لهذه الآية.</p>')
+     :`<div class="qitem"><p>${esc(v.theme)}</p></div>`;
+  };
+  document.querySelectorAll("#qtop button").forEach(b=>b.onclick=()=>{QS.top=+b.dataset.t;draw()});
+  document.querySelectorAll("#qrules button").forEach(b=>b.onclick=()=>{QS.off[b.dataset.r]=!QS.off[b.dataset.r];draw()});
+  document.querySelectorAll(".qtabs button").forEach(b=>b.onclick=()=>{QS.pane=b.dataset.p;info()});
+  $("#qsearch").value=QS.q;$("#qsearch").oninput=e=>{QS.q=e.target.value.trim();draw()};
+  $("#qm").onclick=()=>{QS.fs=Math.max(20,QS.fs-2);$("#qtext").style.fontSize=QS.fs+"px"};
+  $("#qp").onclick=()=>{QS.fs=Math.min(48,QS.fs+2);$("#qtext").style.fontSize=QS.fs+"px"};
+  draw();info();window.scrollTo(0,0);
+}
 const TERMS_AR=["الفصل الأول","الفصل الثاني","الفصل الثالث"];
 function renderHeader(){
   $("#h1").textContent=SITE.name; $("#tagline").textContent=SITE.tagline||""; $("#tagline").hidden=!SITE.tagline;
@@ -555,6 +657,7 @@ function renderHeader(){
   document.querySelector("nav.tabs").hidden=home;
   $("#tabA").hidden=!(S&&S.assessment);
   $("#tabC").hidden=!hasContact();
+  $("#tabQ").hidden=!(S&&QURAN[S.id]&&QURAN[S.id].length);
   if(SITE.footer) $("#foot").textContent=SITE.footer;
   if(hasContact()){const f=$("#foot");if(!$("#flc")){f.insertAdjacentHTML("beforeend",' · <button class="flink" id="flc">تواصل معي وأبدِ رأيك</button>');$("#flc").onclick=()=>go("contact")}}
 }
@@ -572,7 +675,7 @@ function pick(id){
 let lastTrack="";
 function track(){
   try{
-    const id=openLesson||openExam||openPlan||openGame||"";
+    const id=openLesson||openExam||openPlan||openGame||openQuran||"";
     const path="/"+(tab==="home"?"home":[S&&S.id,tab,lvl,id].filter(Boolean).join("/"));
     if(path===lastTrack)return; lastTrack=path;
     if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:path,title:document.title,event:false});
@@ -583,6 +686,7 @@ function render(){
 function renderMain(){
   if(tab==="assessment"&&!(S&&S.assessment)) tab="lessons";
   if(tab==="contact"&&!hasContact()) tab="lessons";
+  if(tab==="quran"&&!(S&&QURAN[S.id]&&QURAN[S.id].length)) tab="lessons";
   renderHeader();
   if(tab==="home"){renderHome();return}
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===tab));
@@ -590,6 +694,7 @@ function renderMain(){
   if(tab==="exams"){renderExams();return}
   if(tab==="plans"){renderPlans();return}
   if(tab==="games"){renderGames();return}
+  if(tab==="quran"){renderQuran();return}
   if(tab==="contact"){renderContact();return}
   if(!LOADED[S.id+"|"+lvl]){
     main.innerHTML=lvChips(lvl)+'<p class="lead">جارٍ تحميل الدروس...</p>';
@@ -601,9 +706,9 @@ function renderMain(){
   ({lessons:renderLessons,questions:renderQuestions})[tab]();
   main.querySelectorAll("[data-lv]").forEach(b=>b.onclick=()=>{lvl=b.dataset.lv;store.set("ulum-lvl-"+S.id,lvl);openLesson=null;render()});
 }
-function go(t){tab=t;openLesson=null;openExam=null;openPlan=null;openGame=null;GS=null;try{history.replaceState(null,"","#"+t)}catch(e){}render();window.scrollTo(0,0)}
+function go(t){tab=t;openLesson=null;openExam=null;openPlan=null;openGame=null;openQuran=null;GS=null;try{history.replaceState(null,"","#"+t)}catch(e){}render();window.scrollTo(0,0)}
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>go(b.dataset.tab));
-const h=location.hash.slice(1); if(["lessons","questions","exams","games","plans","assessment","contact","home"].includes(h)) tab=h;
+const h=location.hash.slice(1); if(["lessons","questions","exams","quran","games","plans","assessment","contact","home"].includes(h)) tab=h;
 $("#h1").onclick=()=>{if(SUBJECTS.length>1)go("home")};
 const applyTheme=t=>{if(t)document.documentElement.setAttribute("data-theme",t)};
 applyTheme(store.get("theme"));
@@ -615,7 +720,7 @@ $("#theme").onclick=()=>{const dark=document.documentElement.getAttribute("data-
     try{const r=await fetch("site.json");if(r.ok)SITE=Object.assign(SITE,await r.json())}catch(e){}
     const ids=await (await fetch("subjects/index.json")).json();
     SUBJECTS=await Promise.all(ids.map(id=>fetch("subjects/"+id+".json").then(r=>{if(!r.ok)throw 0;return r.json()})));
-    pick(store.get("ulum-subject")); if(SUBJECTS.length>1&&!location.hash) tab="home"; render();
+    pick(store.get("ulum-subject")); try{await loadQuran()}catch(e){} if(SUBJECTS.length>1&&!location.hash) tab="home"; render();
   }catch(e){main.innerHTML='<div class="err">تعذّر تحميل المحتوى. أعد تحميل الصفحة، وإن استمرت المشكلة فأخبر الأستاذ.</div>'}
 })();
 </script>

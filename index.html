@@ -183,6 +183,32 @@ textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:
 .gres .big{font-size:2.6rem;font-weight:800;color:var(--accent)}
 .gbadge{display:inline-block;background:var(--good-soft);color:var(--good);border-radius:99px;padding:0 10px;font-size:.85rem;font-weight:700}
 </style>
+<style>
+/* سمات وأشكال الألعاب: لكل لعبة theme وshape في ملفها */
+.gw{--accent:#0f6b5c}
+.gw[data-th="ocean"]{--accent:#0b6fa4;--accent-ink:#fff;--gold-soft:#e3f1fa;--gold:#0b6fa4}
+.gw[data-th="sunset"]{--accent:#b8500f;--accent-ink:#fff;--gold-soft:#fdeedd;--gold:#b8500f}
+.gw[data-th="violet"]{--accent:#6a3fb5;--accent-ink:#fff;--gold-soft:#eee8fa;--gold:#6a3fb5}
+.gw[data-th="rose"]{--accent:#b5305f;--accent-ink:#fff;--gold-soft:#fbe6ee;--gold:#b5305f}
+.gw[data-th="forest"]{--accent:#2f6b2f;--accent-ink:#fff;--gold-soft:#e8f3e2;--gold:#2f6b2f}
+:root[data-theme="dark"] .gw[data-th]{--gold-soft:#2b2b36}
+.gban{background:var(--accent);color:var(--accent-ink);border-radius:14px;padding:12px 16px;display:flex;gap:12px;align-items:center;font-weight:800;font-size:1.1rem}
+.gban .ic{font-size:1.8rem}
+.gw[data-sh="pill"] .gopt,.gw[data-sh="pill"] .gitem{border-radius:999px;text-align:center}
+.gw[data-sh="pill"] .gban{border-radius:999px}
+.gw[data-sh="sharp"] .gopt,.gw[data-sh="sharp"] .gcard,.gw[data-sh="sharp"] .gitem,.gw[data-sh="sharp"] .gban{border-radius:3px;border-width:3px}
+.gw[data-sh="grid"] .gopts{display:grid;grid-template-columns:1fr 1fr}
+.gw[data-sh="grid"] .gopt{text-align:center}
+.gw[data-sh="chips"] .gopts{flex-direction:row;flex-wrap:wrap}
+.gw[data-sh="chips"] .gopt{flex:1 1 auto;border-radius:999px;text-align:center}
+.gtf{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.gtf .gopt{min-height:72px;font-size:1.2rem;text-align:center}
+.gflip{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.gcf{min-height:84px;border-radius:12px;border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:700;font-size:1.2rem;cursor:pointer;padding:8px}
+.gcf.open{background:var(--bg);color:var(--ink);font-size:.95rem}
+.gcf.ok{background:var(--good-soft);border-color:var(--good);color:var(--ink);font-size:.95rem}
+.gcf.no{background:var(--bad-soft);border-color:var(--bad);color:var(--ink);font-size:.95rem}
+</style>
 </head>
 <body>
 <div dir="rtl" lang="ar">
@@ -385,7 +411,7 @@ function renderContact(){
   const sw=$("#sw");if(sw)sw.onclick=()=>{const t=compose();if(t)window.open("https://wa.me/"+String(c.whatsapp).replace(/\D/g,"")+"?text="+encodeURIComponent(t),"_blank","noopener")};
   const se=$("#se");if(se)se.onclick=()=>{const t=compose();if(t)location.href="mailto:"+c.email+"?subject="+encodeURIComponent(SITE.name+": "+$("#ck").value)+"&body="+encodeURIComponent(t)};
 }
-/* ألعاب: subjects/<المادة>/games/<المستوى>-<NN>.json ، مثل 4-01.json. أنواع الخطوات: learn (بطاقة تعلّم)، quiz، sort (تصنيف)، scenario (موقف)، order (ترتيب)، match (توصيل). */
+/* ألعاب: subjects/<المادة>/games/<المستوى>-<NN>.json ، مثل 4-01.json. أنواع الخطوات: learn (بطاقة تعلّم)، quiz، sort (تصنيف)، scenario (موقف)، order (ترتيب)، match (توصيل)، tf (صح/خطأ)، fill (أكمل)، flip (ذاكرة). في ملف اللعبة: theme (ocean, sunset, violet, rose, forest) وshape (pill, sharp, grid, chips). */
 const GAMES={}; let openGame=null, GS=null;
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const gKey=id=>"game:"+S.id+":"+id;
@@ -404,6 +430,9 @@ function gUnits(g){
     else if(st.type==="quiz"){const correct=st.opts[st.a];const opts=shuf(st.opts).map(t=>({t,ok:t===correct}));u.push({k:"quiz",st,opts})}
     else if(st.type==="sort") shuf(st.items).forEach(it=>u.push({k:"sort",st,it}));
     else if(st.type==="scenario") u.push({k:"scenario",st,choices:shuf(st.choices)});
+    else if(st.type==="tf") shuf(st.items).forEach(it=>u.push({k:"tf",st,it}));
+    else if(st.type==="fill"){const correct=st.opts[st.a];u.push({k:"fill",st,opts:shuf(st.opts).map(t=>({t,ok:t===correct}))})}
+    else if(st.type==="flip") u.push({k:"flip",st,cards:shuf(st.pairs.flatMap((p,i)=>[{t:p[0],i},{t:p[1],i}]))});
     else if(st.type==="order") u.push({k:"order",st,pool:shuf(st.items.map((t,i)=>({t,i})))});
     else if(st.type==="match") u.push({k:"match",st,left:st.pairs.map((p,i)=>({t:p[0],i})),right:shuf(st.pairs.map((p,i)=>({t:p[1],i})))});
   });
@@ -434,6 +463,30 @@ function gDraw(){
     pane.innerHTML=`<div class="gcard"><h3>${u.st.q}</h3><div class="gitem">${u.it.t}</div><div class="gbins">${u.st.bins.map((t,j)=>`<button class="gopt" data-j="${j}" style="text-align:center">${t}</button>`).join("")}</div><div id="gfb" class="gfb" hidden></div><div id="gnx" hidden>${next()}</div></div>`;
     GS.max++;
     pane.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{const j=Number(b.dataset.j),ok=j===u.it.b;pane.querySelectorAll(".gopt").forEach((x,k)=>{x.disabled=true;if(k===u.it.b)x.classList.add("ok");else if(x===b)x.classList.add("no")});if(ok)GS.score++;fb(ok,u.it.why||"");wire()});
+    return;
+  }
+  if(u.k==="tf"){
+    GS.max++;
+    pane.innerHTML=`<div class="gcard"><h3>${u.st.q||"صحيح أم خطأ؟"}</h3><div class="gitem">${u.it.t}</div><div class="gtf"><button class="gopt" data-v="1">✔ صحيح</button><button class="gopt" data-v="0">✖ خطأ</button></div><div id="gfb" class="gfb" hidden></div><div id="gnx" hidden>${next()}</div></div>`;
+    pane.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{const v=b.dataset.v==="1",ok=v===!!u.it.b;pane.querySelectorAll(".gopt").forEach(x=>{x.disabled=true;if((x.dataset.v==="1")===!!u.it.b)x.classList.add("ok");else if(x===b)x.classList.add("no")});if(ok)GS.score++;fb(ok,u.it.why||"");wire()});
+    return;
+  }
+  if(u.k==="fill"){
+    GS.max++;
+    pane.innerHTML=`<div class="gcard"><h3>أكمل الفراغ</h3><div class="gitem">${u.st.q.replace("____",'<span style="border-bottom:3px solid var(--accent);padding:0 18px">&nbsp;</span>')}</div><div class="gopts" style="flex-direction:row;flex-wrap:wrap">${u.opts.map((o,j)=>`<button class="gopt" data-j="${j}" style="flex:1 1 auto;text-align:center">${o.t}</button>`).join("")}</div><div id="gfb" class="gfb" hidden></div><div id="gnx" hidden>${next()}</div></div>`;
+    pane.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{const o=u.opts[b.dataset.j];pane.querySelectorAll(".gopt").forEach((x,j)=>{x.disabled=true;if(u.opts[j].ok)x.classList.add("ok");else if(x===b)x.classList.add("no")});if(o.ok)GS.score++;fb(o.ok,u.st.why||"");wire()});
+    return;
+  }
+  if(u.k==="flip"){
+    GS.max++;let open=[],lock=false,mis=0,done=0;
+    pane.innerHTML=`<div class="gcard"><h3>${u.st.q}</h3><p class="note" style="margin:0">اقلب بطاقتين لتجد الزوج المتطابق.</p><div class="gflip">${u.cards.map((c,j)=>`<button class="gcf" data-j="${j}">؟</button>`).join("")}</div><div id="gfb" class="gfb" hidden></div><div id="gnx" hidden>${next()}</div></div>`;
+    const bs=[...pane.querySelectorAll(".gcf")];
+    bs.forEach(b=>b.onclick=()=>{const j=Number(b.dataset.j);if(lock||b.classList.contains("ok")||open.includes(j))return;
+      b.classList.add("open");b.textContent=u.cards[j].t;open.push(j);
+      if(open.length===2){const [a,c]=open;
+        if(u.cards[a].i===u.cards[c].i){bs[a].classList.remove("open");bs[c].classList.remove("open");bs[a].classList.add("ok");bs[c].classList.add("ok");open=[];done++;
+          if(done===u.st.pairs.length){if(mis<=u.st.pairs.length)GS.score++;fb(mis<=u.st.pairs.length,`عدد المحاولات الخاطئة: ${mis}.`);wire()}}
+        else{mis++;lock=true;bs[a].classList.add("no");bs[c].classList.add("no");setTimeout(()=>{[a,c].forEach(k=>{bs[k].classList.remove("open","no");bs[k].textContent="؟"});open=[];lock=false},900)}}});
     return;
   }
   if(u.k==="order"){
@@ -479,8 +532,9 @@ async function renderGames(){
   const all=GAMES[key];
   if(openGame){
     const g=all.find(x=>x.id===openGame);
-    if(!GS||GS.g!==g){main.innerHTML=`<div class="row"><button class="btn ghost" id="back">العودة إلى الألعاب</button></div>
-    <div class="gtop"><span id="gno"></span><span id="gsc"></span></div><div class="gbar"><i id="gbar" style="width:0"></i></div><div id="gp"></div>`;
+    if(!GS||GS.g!==g){main.innerHTML=`<div class="gw" data-th="${g.theme||""}" data-sh="${g.shape||""}"><div class="row"><button class="btn ghost" id="back">العودة إلى الألعاب</button></div>
+    <div class="gban"><span class="ic">${g.icon||"🎮"}</span><span>${g.title}</span></div>
+    <div class="gtop"><span id="gno"></span><span id="gsc"></span></div><div class="gbar"><i id="gbar" style="width:0"></i></div><div id="gp" style="display:flex;flex-direction:column;gap:12px;margin-top:12px"></div></div>`;
       $("#back").onclick=()=>{openGame=null;GS=null;render()};gStart(g)}
     window.scrollTo(0,0);return;
   }

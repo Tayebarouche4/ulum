@@ -413,22 +413,31 @@ async function loadGen(lv,t){
 const pickRnd=a=>a[Math.floor(Math.random()*a.length)];
 function genBuild(g,exams){
   const sel=g.topics.filter(t=>GEN.sel[t.id]).map(t=>t.id);
-  const kind=id=>g.topics.find(t=>t.id===id).kind;
+  const kind=id=>(g.topics.find(t=>t.id===id)||{}).kind;
+  const taught=new Set(sel); g.topics.forEach(t=>{if(GEN.sel[t.id]&&t.after)taught.add(t.after)});
+  const newest=g.topics.filter(t=>GEN.sel[t.id]&&t.after).map(t=>t.id);
+  const cov=u=>u.covers||[u.topic];
   const std={surah:6,lesson:6,integrative:8};
-  const pool=slot=>g.units.filter(u=>u.slot===slot&&u.pts===std[slot]&&sel.includes(u.topic)&&((kind(u.topic)==="surah")===(slot==="surah")));
+  const pool=slot=>{
+    const p=g.units.filter(u=>u.slot===slot&&u.pts===std[slot]&&cov(u).every(c=>taught.has(c))&&cov(u).some(c=>(slot==="surah")===(kind(c)==="surah")&&sel.includes(c)||(newest.length&&false)));
+    const pref=p.filter(u=>cov(u).some(c=>newest.includes(c)));
+    return pref.length?pref:p;
+  };
   const names={surah:"وضعية السورة",lesson:"وضعية الدرس",integrative:"الوضعية الإدماجية"};
+  const uid=u=>u.id||(u.exam+"#"+u.i);
   const out=[];
   for(const slot of ["surah","lesson","integrative"]){
     let p=pool(slot); if(!p.length) return {err:`لا توجد في البنك وضعية مناسبة لـ«${names[slot]}» ضمن الدروس التي اخترتَها. اختر درسًا آخر أو أضف إليها.`};
-    const fresh=p.filter(u=>!GEN.last.includes(u.exam+"#"+u.i)); out.push(pickRnd(fresh.length?fresh:p));
+    const fresh=p.filter(u=>!GEN.last.includes(uid(u))); out.push(pickRnd(fresh.length?fresh:p));
   }
   const ord=["الأولى","الثانية","الثالثة"], blocks=[], answers=[];
-  out.forEach((u,k)=>{const E=exams.find(x=>x.id===u.exam); if(!E) return;
+  out.forEach((u,k)=>{
+    let B,A; if(u.block){B=u.block;A=u.answer}else{const E=exams.find(x=>x.id===u.exam); if(!E) return; B=E.blocks[u.i];A=E.answers&&E.answers[u.i]}
     const pts=String(u.pts).padStart(2,"0")+" نقاط";
     const hd=u.slot==="integrative"?`الوضعية الإدماجية (${pts})`:`الوضعية ${ord[k]} (${pts})`;
-    blocks.push(Object.assign({},E.blocks[u.i],{h:hd}));
-    if(E.answers&&E.answers[u.i]) answers.push(Object.assign({},E.answers[u.i],{h:hd.replace(/\s*\(.*\)/,"")}));});
-  return {blocks,answers,src:out.map(u=>u.exam+"/"+(u.i+1)),used:out.map(u=>u.exam+"#"+u.i)};
+    blocks.push(Object.assign({},B,{h:hd}));
+    if(A) answers.push(Object.assign({},A,{h:hd.replace(/\s*\(.*\)/,"")}));});
+  return {blocks,answers,src:out.map(u=>u.src||(u.exam+"/"+(u.i+1))),used:out.map(uid)};
 }
 async function renderGen(){
   const g=await loadGen(lvl,exTerm);

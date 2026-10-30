@@ -238,6 +238,7 @@ textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:
 .qkey i{width:10px;height:10px;border-radius:50%;display:inline-block}
 .qbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
 .qbar input[type=search]{flex:1;min-width:160px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:4px 12px;min-height:40px}
+.qdraft{background:var(--warn-soft);color:var(--ink);border:1px solid var(--warn);border-radius:10px;padding:6px 12px;margin:6px 0;font-size:.95rem}
 .qpanel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:12px}
 .qhead{background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:10px 14px}
 .qhead .ar{font:1.35rem/2 "Scheherazade New","Amiri",serif}
@@ -612,6 +613,7 @@ async function renderQuran(){
   const topics=d.topics||[];
   main.innerHTML=`<div class="row"><button class="btn ghost" id="qback">العودة إلى القرآن</button></div>
   <div class="qx"><h2>${d.title}</h2><p class="lead">${d.riwaya||""} · ${d.meta||""}</p>
+  ${d.draft?`<p class="qdraft">⚠ ${d.draft}</p>`:""}
   ${topics.length?`<div class="qkey" id="qtop"><button data-t="0">كل الآيات</button>${topics.map(t=>`<button data-t="${t.id}" title="${t.desc||""}">${t.title}</button>`).join("")}</div>`:""}
   <div class="qkey" id="qrules">${QRULES.map(r=>`<button data-r="${r[0]}"><i style="background:var(--${r[2]})"></i>${r[1]}</button>`).join("")}</div>
   <div class="qbar"><input type="search" id="qsearch" placeholder="ابحث في الآيات"><button class="btn ghost" id="qm" aria-label="تصغير الخط">أ−</button><button class="btn ghost" id="qp" aria-label="تكبير الخط">أ+</button></div>

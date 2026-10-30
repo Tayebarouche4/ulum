@@ -385,7 +385,7 @@ function renderContact(){
   const sw=$("#sw");if(sw)sw.onclick=()=>{const t=compose();if(t)window.open("https://wa.me/"+String(c.whatsapp).replace(/\D/g,"")+"?text="+encodeURIComponent(t),"_blank","noopener")};
   const se=$("#se");if(se)se.onclick=()=>{const t=compose();if(t)location.href="mailto:"+c.email+"?subject="+encodeURIComponent(SITE.name+": "+$("#ck").value)+"&body="+encodeURIComponent(t)};
 }
-/* ألعاب: subjects/<المادة>/games/<المستوى>-<NN>.json ، مثل 4-01.json. أنواع الخطوات: learn (بطاقة تعلّم)، quiz، sort (تصنيف)، scenario (موقف). */
+/* ألعاب: subjects/<المادة>/games/<المستوى>-<NN>.json ، مثل 4-01.json. أنواع الخطوات: learn (بطاقة تعلّم)، quiz، sort (تصنيف)، scenario (موقف)، order (ترتيب)، match (توصيل). */
 const GAMES={}; let openGame=null, GS=null;
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const gKey=id=>"game:"+S.id+":"+id;
@@ -404,6 +404,8 @@ function gUnits(g){
     else if(st.type==="quiz"){const correct=st.opts[st.a];const opts=shuf(st.opts).map(t=>({t,ok:t===correct}));u.push({k:"quiz",st,opts})}
     else if(st.type==="sort") shuf(st.items).forEach(it=>u.push({k:"sort",st,it}));
     else if(st.type==="scenario") u.push({k:"scenario",st,choices:shuf(st.choices)});
+    else if(st.type==="order") u.push({k:"order",st,pool:shuf(st.items.map((t,i)=>({t,i})))});
+    else if(st.type==="match") u.push({k:"match",st,left:st.pairs.map((p,i)=>({t:p[0],i})),right:shuf(st.pairs.map((p,i)=>({t:p[1],i})))});
   });
   return u;
 }
@@ -432,6 +434,29 @@ function gDraw(){
     pane.innerHTML=`<div class="gcard"><h3>${u.st.q}</h3><div class="gitem">${u.it.t}</div><div class="gbins">${u.st.bins.map((t,j)=>`<button class="gopt" data-j="${j}" style="text-align:center">${t}</button>`).join("")}</div><div id="gfb" class="gfb" hidden></div><div id="gnx" hidden>${next()}</div></div>`;
     GS.max++;
     pane.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{const j=Number(b.dataset.j),ok=j===u.it.b;pane.querySelectorAll(".gopt").forEach((x,k)=>{x.disabled=true;if(k===u.it.b)x.classList.add("ok");else if(x===b)x.classList.add("no")});if(ok)GS.score++;fb(ok,u.it.why||"");wire()});
+    return;
+  }
+  if(u.k==="order"){
+    GS.max++;let nextI=0,mis=0;const placed=[],pool=u.pool.slice();
+    const paint=()=>{pane.querySelector("#og").innerHTML=pool.map(o=>`<button class="gopt" data-i="${o.i}">${o.t}</button>`).join("");
+      pane.querySelector("#op").innerHTML=placed.map((o,k)=>`<li>${o.t}</li>`).join("")||'<li class="note" style="list-style:none">اضغط الخطوات بالترتيب الصحيح</li>';
+      pane.querySelectorAll("#og .gopt").forEach(b=>b.onclick=()=>{const i=Number(b.dataset.i);
+        if(i===nextI){const k=pool.findIndex(o=>o.i===i);placed.push(pool.splice(k,1)[0]);nextI++;
+          if(nextI===u.st.items.length){if(mis===0)GS.score++;paint();fb(mis===0,mis?`أخطأتَ ${mis} مرة. هذا هو الترتيب كما في الدرس.`:"ترتيب صحيح من أول مرة.");wire();return}
+          paint()}
+        else{mis++;b.classList.add("no");setTimeout(()=>b.classList.remove("no"),500)}});};
+    pane.innerHTML=`<div class="gcard"><h3>${u.st.q}</h3><ol id="op" style="margin:0;padding-inline-start:1.4em;display:flex;flex-direction:column;gap:6px"></ol><div class="gopts" id="og"></div><div id="gfb" class="gfb" hidden></div><div id="gnx" hidden>${next()}</div></div>`;
+    paint();return;
+  }
+  if(u.k==="match"){
+    GS.max++;let sel=null,mis=0,done=0;const L={},R={};
+    pane.innerHTML=`<div class="gcard"><h3>${u.st.q}</h3><p class="note" style="margin:0">اضغط عنصرًا من القائمة الأولى ثم ما يناسبه من الثانية.</p><div class="gbins" style="align-items:start"><div class="gopts" id="ml">${u.left.map(o=>`<button class="gopt" data-i="${o.i}">${o.t}</button>`).join("")}</div><div class="gopts" id="mr">${u.right.map(o=>`<button class="gopt" data-i="${o.i}">${o.t}</button>`).join("")}</div></div><div id="gfb" class="gfb" hidden></div><div id="gnx" hidden>${next()}</div></div>`;
+    const lb=[...pane.querySelectorAll("#ml .gopt")],rb=[...pane.querySelectorAll("#mr .gopt")];
+    lb.forEach(b=>b.onclick=()=>{if(b.disabled)return;lb.forEach(x=>x.style.outline="");sel=b;b.style.outline="3px solid var(--accent)"});
+    rb.forEach(b=>b.onclick=()=>{if(b.disabled)return;if(!sel){return}
+      if(sel.dataset.i===b.dataset.i){sel.classList.add("ok");b.classList.add("ok");sel.disabled=b.disabled=true;sel.style.outline="";sel=null;done++;
+        if(done===u.st.pairs.length){if(mis===0)GS.score++;fb(mis===0,mis?`أخطأتَ ${mis} مرة.`:"توصيل صحيح من أول مرة.");wire()}}
+      else{mis++;b.classList.add("no");setTimeout(()=>b.classList.remove("no"),500)}});
     return;
   }
   if(u.k==="scenario"){

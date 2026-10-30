@@ -239,6 +239,7 @@ textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:
 .qbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
 .qbar input[type=search]{flex:1;min-width:160px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:4px 12px;min-height:40px}
 .qdraft{background:var(--warn-soft);color:var(--ink);border:1px solid var(--warn);border-radius:10px;padding:6px 12px;margin:6px 0;font-size:.95rem}
+.gchk{display:flex;flex-direction:column;gap:6px;margin:8px 0}.gchk label{display:flex;gap:8px;align-items:center;cursor:pointer}
 .qlay{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
 .qpanel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:0 -4px 14px rgba(0,0,0,.08);position:sticky;bottom:0;max-height:46vh;overflow-y:auto;z-index:5}
 @media (min-width:900px){.qlay{grid-template-columns:1fr 360px}.qpanel{bottom:auto;top:12px;max-height:calc(100vh - 24px);box-shadow:none}}
@@ -266,6 +267,7 @@ textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:
     <button role="tab" data-tab="exams">نماذج الأسئلة</button>
     <button role="tab" data-tab="quran" id="tabQ" hidden>القرآن</button>
     <button role="tab" data-tab="games">ألعاب</button>
+    <button role="tab" data-tab="gen">مولّد الفروض</button>
     <button role="tab" data-tab="plans">مذكرات الأستاذ</button>
     <button role="tab" data-tab="assessment" id="tabA">التقويم المستمر</button>
     <button role="tab" data-tab="contact" id="tabC" hidden>تواصل</button>
@@ -400,6 +402,55 @@ async function renderExams(){
   bindLv();
   main.querySelectorAll("[data-et]").forEach(b=>b.onclick=()=>{exTerm=Number(b.dataset.et);render()});
   main.querySelectorAll("[data-ex]").forEach(b=>b.onclick=()=>{openExam=b.dataset.ex;render()});
+}
+/* مولّد الفروض: subjects/<المادة>/generator/<المستوى>-<الفصل>.json = قائمة المواضيع topics + وحدات units تشير إلى وضعية في نموذج موجود {exam,i,slot,topic,pts}. الأستاذ يختار الدروس المدرّسة فقط فتُسحب الوضعيات منها. */
+const GENS={}; let GEN={sel:{},cur:null,last:[]};
+async function loadGen(lv,t){
+  const key=S.id+"|"+lv+"|"+t; if(key in GENS) return GENS[key];
+  let g=null; try{const r=await fetch(`subjects/${S.id}/generator/${lv}-${t}.json`);if(r.ok)g=await r.json()}catch(e){}
+  return GENS[key]=g;
+}
+const pickRnd=a=>a[Math.floor(Math.random()*a.length)];
+function genBuild(g,exams){
+  const sel=g.topics.filter(t=>GEN.sel[t.id]).map(t=>t.id);
+  const kind=id=>g.topics.find(t=>t.id===id).kind;
+  const std={surah:6,lesson:6,integrative:8};
+  const pool=slot=>g.units.filter(u=>u.slot===slot&&u.pts===std[slot]&&sel.includes(u.topic)&&((kind(u.topic)==="surah")===(slot==="surah")));
+  const names={surah:"وضعية السورة",lesson:"وضعية الدرس",integrative:"الوضعية الإدماجية"};
+  const out=[];
+  for(const slot of ["surah","lesson","integrative"]){
+    let p=pool(slot); if(!p.length) return {err:`لا توجد في البنك وضعية مناسبة لـ«${names[slot]}» ضمن الدروس التي اخترتَها. اختر درسًا آخر أو أضف إليها.`};
+    const fresh=p.filter(u=>!GEN.last.includes(u.exam+"#"+u.i)); out.push(pickRnd(fresh.length?fresh:p));
+  }
+  const ord=["الأولى","الثانية","الثالثة"], blocks=[], answers=[];
+  out.forEach((u,k)=>{const E=exams.find(x=>x.id===u.exam); if(!E) return;
+    const pts=String(u.pts).padStart(2,"0")+" نقاط";
+    const hd=u.slot==="integrative"?`الوضعية الإدماجية (${pts})`:`الوضعية ${ord[k]} (${pts})`;
+    blocks.push(Object.assign({},E.blocks[u.i],{h:hd}));
+    if(E.answers&&E.answers[u.i]) answers.push(Object.assign({},E.answers[u.i],{h:hd.replace(/\s*\(.*\)/,"")}));});
+  return {blocks,answers,src:out.map(u=>u.exam+"/"+(u.i+1)),used:out.map(u=>u.exam+"#"+u.i)};
+}
+async function renderGen(){
+  const g=await loadGen(lvl,exTerm);
+  const exams=await loadExams(lvl);
+  main.innerHTML=`<div><h2>مولّد الفروض</h2><p class="lead">حدّد الدروس التي درستَها، فتُسحب الوضعيات من نماذجك المعتمدة ضمنها فقط، وتُركَّب ورقة من 20 نقطة (6 + 6 + 8) مع الحل النموذجي.</p></div>${lvChips(lvl)}
+  <div class="chips" role="group" aria-label="الفصل">${TERMS_AR.map((t,i)=>`<button class="chip" data-et="${i+1}" aria-pressed="${exTerm===i+1}">${t}</button>`).join("")}</div>
+  ${g?`<div class="box"><h3>الدروس المدرّسة</h3><div class="gchk">${g.topics.map(t=>`<label><input type="checkbox" data-t="${t.id}" ${GEN.sel[t.id]?"checked":""}> ${t.name}</label>`).join("")}</div>
+  <div class="row"><button class="btn" id="gen">ولّد نموذجًا</button>${GEN.cur&&!GEN.cur.err?'<button class="btn ghost" id="prt">اطبع</button>':""}</div></div><div id="gout"></div>`
+  :'<p class="lead">لم يُجهَّز بنك الأسئلة لهذا المستوى والفصل بعد.</p>'}`;
+  bindLv(); main.querySelectorAll("[data-et]").forEach(b=>b.onclick=()=>{exTerm=Number(b.dataset.et);GEN.cur=null;render()});
+  if(!g) return;
+  main.querySelectorAll("[data-t]").forEach(c=>c.onchange=()=>{GEN.sel[c.dataset.t]=c.checked});
+  const show=()=>{ if(!GEN.cur){$("#gout").innerHTML="";return}
+    const C=GEN.cur;
+    $("#gout").innerHTML=C.err?`<div class="err">${C.err}</div>`:`<article class="sheet"><div class="meta"><span>المستوى: <b>${lvName(lvl)}</b></span><span>الفصل: <b>${TERMS_AR[exTerm-1]}</b></span></div><h2>فرض ${TERMS_AR[exTerm-1]} في مادة ${S.name}</h2>${C.blocks.map(renderBlock).join("")}</article>
+    <section class="mapbox"><div><h3>الحل النموذجي</h3><p class="note">مصدر الوضعيات: ${C.src.join("، ")}</p></div><div class="row"><button class="btn" id="ansbtn">أظهر الحل</button></div><div id="anspane" hidden class="sheet">${C.answers.map(renderBlock).join("")}</div></section>`;
+    const ab=$("#ansbtn"); if(ab) ab.onclick=()=>{const p=$("#anspane");p.hidden=!p.hidden;ab.textContent=p.hidden?"أظهر الحل":"أخفِ الحل"};
+    if(!C.err&&!$("#prt")){const b=document.createElement("button");b.className="btn ghost";b.id="prt";b.textContent="اطبع";b.onclick=()=>window.print();$("#gen").after(b)}
+  };
+  $("#gen").onclick=()=>{GEN.cur=genBuild(g,exams); if(GEN.cur.used) GEN.last=GEN.cur.used; $("#gen").textContent="نموذج آخر"; show()};
+  const pr=$("#prt"); if(pr) pr.onclick=()=>window.print();
+  if(GEN.cur){$("#gen").textContent="نموذج آخر";show()}
 }
 /* مذكرات الأستاذ: subjects/<المادة>/plans/<المستوى>-<الرقم>.json ، مثل 1-02.json (الأولى، الدرس 02) */
 const PLANS={}; let openPlan=null;
@@ -699,6 +750,7 @@ function renderMain(){
   if(tab==="plans"){renderPlans();return}
   if(tab==="games"){renderGames();return}
   if(tab==="quran"){renderQuran();return}
+  if(tab==="gen"){renderGen();return}
   if(tab==="contact"){renderContact();return}
   if(!LOADED[S.id+"|"+lvl]){
     main.innerHTML=lvChips(lvl)+'<p class="lead">جارٍ تحميل الدروس...</p>';
@@ -712,7 +764,7 @@ function renderMain(){
 }
 function go(t){tab=t;openLesson=null;openExam=null;openPlan=null;openGame=null;openQuran=null;GS=null;try{history.replaceState(null,"","#"+t)}catch(e){}render();window.scrollTo(0,0)}
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>go(b.dataset.tab));
-const h=location.hash.slice(1); if(["lessons","questions","exams","quran","games","plans","assessment","contact","home"].includes(h)) tab=h;
+const h=location.hash.slice(1); if(["lessons","questions","exams","gen","quran","games","plans","assessment","contact","home"].includes(h)) tab=h;
 $("#h1").onclick=()=>{if(SUBJECTS.length>1)go("home")};
 const applyTheme=t=>{if(t)document.documentElement.setAttribute("data-theme",t)};
 applyTheme(store.get("theme"));
